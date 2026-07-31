@@ -1,0 +1,4 @@
+# HLint configuration for circuits-machina
+- ignore: {name: Avoid lambda}
+- ignore: {name: Eta reduce}
+- ignore: {name: Use fmap}
