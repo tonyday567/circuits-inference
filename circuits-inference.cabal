@@ -1,5 +1,5 @@
 cabal-version: 3.0
-name: circuits-machina
+name: circuits-inference
 version: 0.1.0.0
 license: BSD-3-Clause
 license-file: LICENSE
@@ -7,9 +7,9 @@ copyright: Tony Day (c) 2026
 category: math
 author: Tony Day
 maintainer: tonyday567@gmail.com
-homepage: https://github.com/tonyday567/circuits-machina#readme
-bug-reports: https://github.com/tonyday567/circuits-machina/issues
-synopsis: Categorical deep learning checkbox — inference as Prob over Kleisli
+homepage: https://github.com/tonyday567/circuits-inference#readme
+bug-reports: https://github.com/tonyday567/circuits-inference/issues
+synopsis: Inference engines as functors from Prob
 description:
   Effectful probability row: Prob (Kleisli m) instances, terminating
   traces on samplers, and premonoidal witnesses. Frontier §4 first slice.
@@ -24,7 +24,7 @@ extra-doc-files:
 
 source-repository head
   type: git
-  location: https://github.com/tonyday567/circuits-machina
+  location: https://github.com/tonyday567/circuits-inference
 
 common ghc-options-stanza
   ghc-options:
@@ -45,14 +45,14 @@ library
   import: ghc2024-stanza
   hs-source-dirs: src
   exposed-modules:
-    Circuit.Machina.Prob
-    Circuit.Machina.Sampler
+    Circuit.Inference.Prob
+    Circuit.Inference.Sampler
   build-depends:
     base >=4.18 && <5,
     circuits >=0.2 && <0.4,
     random >=1.2 && <1.4,
 
-executable circuits-machina-axioma
+executable circuits-inference-axioma
   import: ghc-options-stanza
   import: ghc2024-stanza
   hs-source-dirs: app
@@ -60,7 +60,7 @@ executable circuits-machina-axioma
   build-depends:
     base >=4.18 && <5,
     circuits,
-    circuits-machina,
+    circuits-inference,
     containers >=0.6 && <0.8,
     random >=1.2 && <1.4,
     QuickCheck >=2.14 && <2.16,

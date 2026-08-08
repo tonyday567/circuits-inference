@@ -1,5 +1,5 @@
 -- | Effectful samplers as @Prob (Kleisli IO)@ morphisms.
-module Circuit.Machina.Sampler
+module Circuit.Inference.Sampler
   ( -- * Primitive samplers
     bernoulli,
     uniformDiscrete,
@@ -11,7 +11,7 @@ module Circuit.Machina.Sampler
   )
 where
 
-import Circuit.Machina.Prob (Prob (..), fromWeightedK, traceEK)
+import Circuit.Inference.Prob (Prob (..), fromWeightedK, traceEK)
 import Control.Arrow (Kleisli (..))
 import System.Random (randomRIO)
 

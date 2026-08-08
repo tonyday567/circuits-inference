@@ -9,7 +9,7 @@
 -- on distribution but differ operationally when effects do not commute.
 {-# OPTIONS_GHC -Wno-orphans #-}
 
-module Circuit.Machina.Prob
+module Circuit.Inference.Prob
   ( -- * Re-export base type
     Prob (..),
 

@@ -1,4 +1,4 @@
--- | Axioma oracle for the circuits-machina first slice.
+-- | Axioma oracle for the circuits-inference first slice.
 --
 -- Checks three claims:
 --
@@ -8,8 +8,8 @@
 --    an ordered effect (premonoidal witness).
 module Main where
 
-import Circuit.Machina.Prob (Prob (..), parFGK, parGFK)
-import Circuit.Machina.Sampler (geometric, sample)
+import Circuit.Inference.Prob (Prob (..), parFGK, parGFK)
+import Circuit.Inference.Sampler (geometric, sample)
 import Control.Arrow (Kleisli (..))
 import Data.IORef (IORef, modifyIORef', newIORef, readIORef, writeIORef)
 import Data.List (sort)
@@ -113,7 +113,7 @@ main = do
   okGeo <- checkGeometric
   okPre <- checkPremonoidal
   if okGeo && okPre
-    then putStrLn "circuits-machina axioma: all checks passed"
+    then putStrLn "circuits-inference axioma: all checks passed"
     else do
-      putStrLn "circuits-machina axioma: one or more checks failed"
+      putStrLn "circuits-inference axioma: one or more checks failed"
       exitFailure

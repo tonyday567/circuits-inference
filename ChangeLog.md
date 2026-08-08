@@ -1,4 +1,4 @@
-# Changelog for circuits-machina
+# Changelog for circuits-inference
 
 ## 0.1.0.0 -- 2026-07-31
 

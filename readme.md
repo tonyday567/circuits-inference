@@ -1,6 +1,6 @@
-# circuits-machina
+# circuits-inference
 
-Categorical deep learning checkbox — inference as `Prob (Kleisli m)`.
+Inference engines as functors from `Prob`.
 
 Frontier §4 first slice: effectful probability row, terminating traces on
 samplers, and premonoidal witnesses.
@@ -8,5 +8,5 @@ samplers, and premonoidal witnesses.
 ## verify
 
 ```bash
-cabal run circuits-machina-axioma
+cabal run circuits-inference-axioma
 ```
