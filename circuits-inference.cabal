@@ -45,6 +45,7 @@ library
   import: ghc2024-stanza
   hs-source-dirs: src
   exposed-modules:
+    Circuit.Inference.HMC
     Circuit.Inference.Prob
     Circuit.Inference.SMC
     Circuit.Inference.Sampler

@@ -10,6 +10,7 @@
 --    (tolerance oracle).
 module Main where
 
+import Circuit.Inference.HMC (hmcSamples, momentTest)
 import Circuit.Inference.Prob (Prob (..), parFGK, parGFK)
 import Circuit.Inference.SMC (exactFiltering, l1Distance, particleFilter, trace5)
 import Circuit.Inference.Sampler (geometric, sample)
@@ -122,12 +123,21 @@ checkSMC = do
   report ("SMC filtering within L1 tolerance " ++ show tol) ok
   pure ok
 
+-- | Check HMC preserves N(0,1) — empirical moments match within tolerance.
+checkHMC :: IO Bool
+checkHMC = do
+  samples <- hmcSamples 5000 0.1 10
+  let (ok, meanVal, varVal) = momentTest samples
+  report ("HMC moments (mean=" ++ show meanVal ++ ", var=" ++ show varVal ++ ")") ok
+  pure ok
+
 main :: IO ()
 main = do
   okGeo <- checkGeometric
   okPre <- checkPremonoidal
   okSMC <- checkSMC
-  if okGeo && okPre && okSMC
+  okHMC <- checkHMC
+  if okGeo && okPre && okSMC && okHMC
     then putStrLn "circuits-inference axioma: all checks passed"
     else do
       putStrLn "circuits-inference axioma: one or more checks failed"

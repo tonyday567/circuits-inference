@@ -13,7 +13,7 @@ import System.Random (randomRIO)
 
 -- | N(0,1) log-density.
 logPTarget :: Double -> Double
-logPTarget x = -(x * x) / 2
+logPTarget x = -((x * x) / 2)
 
 -- | Gradient of log-density.
 gradLogP :: Double -> Double
@@ -29,14 +29,14 @@ leapfrogStep (x, p) eps =
 
 -- | L leapfrog steps.
 leapfrog :: Double -> Int -> (Double, Double) -> (Double, Double)
-leapfrog eps n state = iterate (flip leapfrogStep eps) state !! n
+leapfrog eps n state = iterate (`leapfrogStep` eps) state !! n
 
 -- | One HMC step: sample momentum, run L leapfrog steps, MH accept/reject.
 hmcStep :: Double -> Int -> Double -> IO (Double, Bool)
 hmcStep eps nLeap x = do
   u1 <- randomRIO (0, 1 :: Double)
   u2 <- randomRIO (0, 1 :: Double)
-  let p = sqrt (-2 * log (max u1 1e-300)) * cos (2 * pi * u2)
+  let p = sqrt (-(2 * log (max u1 1e-300))) * cos (2 * pi * u2)
       eCurrent = -logPTarget x + (p * p) / 2
       (xProp, pProp) = leapfrog eps nLeap (x, p)
       eProposed = -logPTarget xProp + (pProp * pProp) / 2
