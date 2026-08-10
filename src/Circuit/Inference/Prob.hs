@@ -1,4 +1,5 @@
 {-# LANGUAGE InstanceSigs #-}
+{-# OPTIONS_GHC -Wno-orphans #-}
 
 -- | Effectful probability row: @Prob (Kleisli m) r@.
 --
@@ -7,8 +8,6 @@
 -- Kleisli base arrow, which is the substrate for sampling-based inference.
 -- The tensor remains premonoidal: the two nestings 'parFGK' and 'parGFK' agree
 -- on distribution but differ operationally when effects do not commute.
-{-# OPTIONS_GHC -Wno-orphans #-}
-
 module Circuit.Inference.Prob
   ( -- * Re-export base type
     Prob (..),
