@@ -1,14 +1,17 @@
--- | Axioma oracle for the circuits-inference first slice.
+-- | Axioma oracle for the circuits-inference second slice.
 --
--- Checks three claims:
+-- Checks four claims:
 --
 -- 1. 'traceEK' on the geometric body terminates (no pure-Double divergence).
 -- 2. The empirical mean of geometric samples agrees with the analytic mean.
 -- 3. 'parFGK' and 'parGFK' agree in distribution but differ operationally on
 --    an ordered effect (premonoidal witness).
+-- 4. SMC particle filter matches exact enumeration on a 2-state HMM
+--    (tolerance oracle).
 module Main where
 
 import Circuit.Inference.Prob (Prob (..), parFGK, parGFK)
+import Circuit.Inference.SMC (exactFiltering, l1Distance, particleFilter, trace5)
 import Circuit.Inference.Sampler (geometric, sample)
 import Control.Arrow (Kleisli (..))
 import Data.IORef (IORef, modifyIORef', newIORef, readIORef, writeIORef)
@@ -91,7 +94,7 @@ checkPremonoidal = do
   let tvDistance =
         sum
           [ abs (fromIntegral (Map.findWithDefault 0 k freqFG - Map.findWithDefault 0 k freqGF) :: Double)
-            | k <- [(False, False), (False, True), (True, False), (True, True)]
+          | k <- [(False, False), (False, True), (True, False), (True, True)]
           ]
           / fromIntegral nSamples
       distOk = tvDistance <= 0.05
@@ -108,11 +111,23 @@ checkPremonoidal = do
   report "parFGK/parGFK operational order differs" opOk
   pure (distOk && opOk)
 
+-- | Check SMC particle filter converges to exact filtering on trace5.
+checkSMC :: IO Bool
+checkSMC = do
+  let exact = exactFiltering trace5
+      smc = particleFilter trace5 2000
+      dist = l1Distance exact smc
+      tol = 0.1
+      ok = dist <= tol
+  report ("SMC filtering within L1 tolerance " ++ show tol) ok
+  pure ok
+
 main :: IO ()
 main = do
   okGeo <- checkGeometric
   okPre <- checkPremonoidal
-  if okGeo && okPre
+  okSMC <- checkSMC
+  if okGeo && okPre && okSMC
     then putStrLn "circuits-inference axioma: all checks passed"
     else do
       putStrLn "circuits-inference axioma: one or more checks failed"

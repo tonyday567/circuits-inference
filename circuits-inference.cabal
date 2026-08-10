@@ -46,6 +46,7 @@ library
   hs-source-dirs: src
   exposed-modules:
     Circuit.Inference.Prob
+    Circuit.Inference.SMC
     Circuit.Inference.Sampler
   build-depends:
     base >=4.18 && <5,
