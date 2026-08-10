@@ -13,9 +13,9 @@ where
 -- | 3-state transition matrix: rows sum to 1.
 transition :: [[Double]]
 transition =
-  [ [0.5, 0.3, 0.2]
-  , [0.1, 0.7, 0.2]
-  , [0.3, 0.3, 0.4]
+  [ [0.5, 0.3, 0.2],
+    [0.1, 0.7, 0.2],
+    [0.3, 0.3, 0.4]
   ]
 
 -- | Exact stationary distribution: solved from π·(P-I) = 0, Σπ = 1.
