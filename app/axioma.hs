@@ -11,6 +11,7 @@
 module Main where
 
 import Circuit.Inference.HMC (hmcSamples, momentTest)
+import Circuit.Inference.LinearSolve (exactStationary, powerIteration)
 import Circuit.Inference.Prob (Prob (..), parFGK, parGFK)
 import Circuit.Inference.SMC (exactFiltering, l1Distance, particleFilter, trace5)
 import Circuit.Inference.Sampler (geometric, sample)
@@ -131,13 +132,24 @@ checkHMC = do
   report ("HMC moments (mean=" ++ show meanVal ++ ", var=" ++ show varVal ++ ")") ok
   pure ok
 
+-- | Check stationary distribution from linear solve matches power iteration.
+checkLinearSolve :: IO Bool
+checkLinearSolve = do
+  let exact = exactStationary
+      approx = powerIteration
+      maxDiff = maximum (zipWith (\x y -> abs (x - y)) exact approx)
+      ok = maxDiff < 1e-10
+  report ("Linear solve vs power iteration (max diff=" ++ show maxDiff ++ ")") ok
+  pure ok
+
 main :: IO ()
 main = do
   okGeo <- checkGeometric
   okPre <- checkPremonoidal
   okSMC <- checkSMC
   okHMC <- checkHMC
-  if okGeo && okPre && okSMC && okHMC
+  okLin <- checkLinearSolve
+  if okGeo && okPre && okSMC && okHMC && okLin
     then putStrLn "circuits-inference axioma: all checks passed"
     else do
       putStrLn "circuits-inference axioma: one or more checks failed"
