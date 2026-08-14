@@ -52,7 +52,7 @@ library
     Circuit.Inference.Sampler
   build-depends:
     base >=4.18 && <5,
-    circuits >=0.2 && <0.4,
+    circuits >=0.2 && <0.5,
     random >=1.2 && <1.4,
 
 executable circuits-inference-axioma

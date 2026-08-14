@@ -1,6 +1,6 @@
 -- | Axioma oracle for the circuits-inference second slice.
 --
--- Checks four claims:
+-- Checks nine claims:
 --
 -- 1. 'traceEK' on the geometric body terminates (no pure-Double divergence).
 -- 2. The empirical mean of geometric samples agrees with the analytic mean.
@@ -8,12 +8,37 @@
 --    an ordered effect (premonoidal witness).
 -- 4. SMC particle filter matches exact enumeration on a 2-state HMM
 --    (tolerance oracle).
+-- 5. HMC preserves N(0,1) moments, and the leapfrog integrator is reversible
+--    and volume-preserving on the Gaussian target (exact oracles).
+-- 6. The leapfrog and Yoshida-4 'System'/'Process' wrappers agree with the
+--    pure step functions.
+-- 7. The Yoshida-4 integrator is reversible and volume-preserving on the
+--    Gaussian target (exact oracles).
+-- 8. Leapfrog energy error on the harmonic oscillator scales like @eps^2@.
+-- 9. Yoshida-4 energy error on the harmonic oscillator scales like @eps^4@.
 module Main where
 
-import Circuit.Inference.HMC (hmcSamples, momentTest)
+import Circuit (runSystem)
+import Circuit.Inference.HMC
+  ( hmcSamples,
+    leapfrogJacobianDet,
+    leapfrogOrderSlope,
+    leapfrogProcess,
+    leapfrogReversible,
+    leapfrogStep,
+    leapfrogSystem,
+    momentTest,
+    yoshida4JacobianDet,
+    yoshida4OrderSlope,
+    yoshida4Process,
+    yoshida4Reversible,
+    yoshida4Step,
+    yoshida4System,
+  )
+import Circuit.Process (scan)
 import Circuit.Inference.LinearSolve (exactStationary, powerIteration)
 import Circuit.Inference.Prob (Prob (..), parFGK, parGFK)
-import Circuit.Inference.SMC (exactFiltering, l1Distance, particleFilter, trace5)
+import Circuit.Inference.SMC (State (..), exactFiltering, l1Distance, obsProb, particleFilter, smcSystem, smcTotalWeight, trace5, transProb)
 import Circuit.Inference.Sampler (geometric, sample)
 import Control.Arrow (Kleisli (..))
 import Data.IORef (IORef, modifyIORef', newIORef, readIORef, writeIORef)
@@ -124,12 +149,108 @@ checkSMC = do
   report ("SMC filtering within L1 tolerance " ++ show tol) ok
   pure ok
 
+-- | Check SMC polynomial shape: weight is a position, not a direction.
+checkSMCPoly :: IO Bool
+checkSMCPoly = do
+  let o = 1
+      expected = sum [transProb StateA s' * obsProb o s' | s' <- [StateA, StateB]]
+      actual = smcTotalWeight o StateA
+      ok = abs (actual - expected) < 1e-9
+  report ("SMC polynomial shape: total weight matches marginal likelihood " ++ show actual) ok
+  pure ok
+
 -- | Check HMC preserves N(0,1) — empirical moments match within tolerance.
 checkHMC :: IO Bool
 checkHMC = do
   samples <- hmcSamples 5000 0.1 10
   let (ok, meanVal, varVal) = momentTest samples
   report ("HMC moments (mean=" ++ show meanVal ++ ", var=" ++ show varVal ++ ")") ok
+  pure ok
+
+-- | Check the leapfrog 'System' and 'Process' agree with the pure step.
+checkLeapfrogProcess :: IO Bool
+checkLeapfrogProcess = do
+  let eps = 0.1
+      seed = (0.0, 1.0)
+      proc = leapfrogProcess eps
+      -- One input through the Process: output is the stepped state.
+      procResult = scan proc [seed]
+      -- One step through the underlying system.
+      stepped = runSystem (leapfrogSystem eps) (seed, Right seed)
+      expected = leapfrogStep seed eps
+      ok = procResult == [expected] && fst stepped == expected
+  report ("leapfrog process/system agreement") ok
+  pure ok
+
+-- | Exact oracle: leapfrog integration is reversible up to machine epsilon.
+checkLeapfrogReversible :: IO Bool
+checkLeapfrogReversible = do
+  let eps = 0.1
+      n = 10
+      state = (1.0, 0.5)
+      ok = leapfrogReversible eps n state
+  report ("leapfrog reversible (eps=" ++ show eps ++ ", n=" ++ show n ++ ")") ok
+  pure ok
+
+-- | Exact oracle: leapfrog integration preserves phase-space volume.
+checkLeapfrogVolume :: IO Bool
+checkLeapfrogVolume = do
+  let eps = 0.1
+      n = 10
+      det = leapfrogJacobianDet eps n
+      ok = abs (det - 1.0) <= 1e-12
+  report ("leapfrog volume preservation (det=" ++ show det ++ ")") ok
+  pure ok
+
+-- | Check the Yoshida-4 'System' and 'Process' agree with the pure step.
+checkYoshida4Process :: IO Bool
+checkYoshida4Process = do
+  let eps = 0.1
+      seed = (0.0, 1.0)
+      proc = yoshida4Process eps
+      procResult = scan proc [seed]
+      stepped = runSystem (yoshida4System eps) (seed, Right seed)
+      expected = yoshida4Step seed eps
+      ok = procResult == [expected] && fst stepped == expected
+  report ("Yoshida-4 process/system agreement") ok
+  pure ok
+
+-- | Exact oracle: Yoshida-4 integration is reversible up to machine epsilon.
+checkYoshida4Reversible :: IO Bool
+checkYoshida4Reversible = do
+  let eps = 0.1
+      n = 5
+      state = (1.0, 0.5)
+      ok = yoshida4Reversible eps n state
+  report ("Yoshida-4 reversible (eps=" ++ show eps ++ ", n=" ++ show n ++ ")") ok
+  pure ok
+
+-- | Exact oracle: Yoshida-4 integration preserves phase-space volume.
+checkYoshida4Volume :: IO Bool
+checkYoshida4Volume = do
+  let eps = 0.1
+      n = 5
+      det = yoshida4JacobianDet eps n
+      ok = abs (det - 1.0) <= 1e-12
+  report ("Yoshida-4 volume preservation (det=" ++ show det ++ ")") ok
+  pure ok
+
+-- | Order oracle: leapfrog energy error scales like @eps^2@ on the harmonic
+-- oscillator.
+checkLeapfrogOrder :: IO Bool
+checkLeapfrogOrder = do
+  let slope = leapfrogOrderSlope 1.0 (1.0, 0.0)
+      ok = abs (slope - 2.0) <= 0.1
+  report ("leapfrog order slope (slope=" ++ show slope ++ ")") ok
+  pure ok
+
+-- | Order oracle: Yoshida-4 energy error scales like @eps^4@ on the harmonic
+-- oscillator.
+checkYoshida4Order :: IO Bool
+checkYoshida4Order = do
+  let slope = yoshida4OrderSlope 1.0 (1.0, 0.0)
+      ok = abs (slope - 4.0) <= 0.1
+  report ("Yoshida-4 order slope (slope=" ++ show slope ++ ")") ok
   pure ok
 
 -- | Check stationary distribution from linear solve matches power iteration.
@@ -147,9 +268,18 @@ main = do
   okGeo <- checkGeometric
   okPre <- checkPremonoidal
   okSMC <- checkSMC
+  okSMCPoly <- checkSMCPoly
   okHMC <- checkHMC
+  okMach <- checkLeapfrogProcess
+  okRev <- checkLeapfrogReversible
+  okVol <- checkLeapfrogVolume
+  okY4Mach <- checkYoshida4Process
+  okY4Rev <- checkYoshida4Reversible
+  okY4Vol <- checkYoshida4Volume
+  okOrd <- checkLeapfrogOrder
+  okY4Ord <- checkYoshida4Order
   okLin <- checkLinearSolve
-  if okGeo && okPre && okSMC && okHMC && okLin
+  if okGeo && okPre && okSMC && okSMCPoly && okHMC && okMach && okRev && okVol && okY4Mach && okY4Rev && okY4Vol && okOrd && okY4Ord && okLin
     then putStrLn "circuits-inference axioma: all checks passed"
     else do
       putStrLn "circuits-inference axioma: one or more checks failed"

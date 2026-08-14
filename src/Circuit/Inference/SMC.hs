@@ -16,14 +16,23 @@ module Circuit.Inference.SMC
     -- * SMC particle filter
     particleFilter,
 
+    -- * Polynomial shape oracle
+    SMCPoly,
+    smcIn,
+    smcSystem,
+    smcTotalWeight,
+
     -- * Oracle
     trace5,
     l1Distance,
   )
 where
 
+import Circuit.Poly (Dir, Mono, Poly (..), System, monoIn, runSystem, system)
+import Circuit.Prob (Prob (..))
 import Data.List (foldl')
 import Data.Maybe (fromMaybe)
+import Data.Void (Void, absurd)
 import System.Random (StdGen, mkStdGen, randomR)
 
 -- ---------------------------------------------------------------------------
@@ -134,6 +143,53 @@ resample weighted n gen =
       pick u = fst $ head $ dropWhile (\(_, c) -> c < u) (zip (map fst weighted) cumWeights)
       picked = map (pick . threshold) [0 .. n - 1]
    in (picked, gen')
+
+-- ---------------------------------------------------------------------------
+-- Polynomial shape oracle: SMC as Prod (Mono () State) (Const Double)
+-- ---------------------------------------------------------------------------
+
+-- | SMC polynomial: particle stream paired with a weight annotation.
+--
+-- * @Mono () State@ — the particle is an output position; the input direction
+--   is trivial (@()@) because the particle is sampled, not supplied.
+-- * @Const Double@ — the weight is an output position with /no/ direction,
+--   so it cannot be fed back as an input.
+--
+-- Written directly in 'Poly' constructors because 'Mono' is a type synonym.
+type SMCPoly = 'Prod ('Prod ('Const State) ('Exp ())) ('Const Double)
+
+-- | Canonical input direction for the SMC polynomial: advance one step.
+smcIn :: () -> Dir SMCPoly
+smcIn () = Left (Right ())
+
+-- | One-step SMC kernel for a fixed observation.
+--
+-- Given current hidden state @s@ and observation @o@, transition to @s'@
+-- according to @transProb@ and emit the particle @s'@ together with weight
+-- @obsProb o s'@.  The weight is part of the output position, not an input
+-- direction, which is exactly the instance-table claim.
+smcSystem :: Int -> System (Prob (->) Double) State SMCPoly
+smcSystem o = system $ Prob $ \k (x, (s, d)) ->
+  case d of
+    Left dMono -> case dMono of
+      Left v -> absurd v
+      Right () ->
+        foldl'
+          (+)
+          0
+          [ transProb s s' * k (x, (s', ((s', ()), obsProb o s')))
+            | s' <- allStates
+          ]
+    Right v -> absurd v
+
+-- | Total expected weight emitted by one SMC step starting from @s@ for
+-- observation @o@.  This is the marginal likelihood @P(o | s)@.
+smcTotalWeight :: Int -> State -> Double
+smcTotalWeight o s =
+  runProb
+    (runSystem (smcSystem o))
+    (\(_, (_s', ((_p, ()), w))) -> w)
+    ((), (s, smcIn ()))
 
 -- ---------------------------------------------------------------------------
 -- Oracle
