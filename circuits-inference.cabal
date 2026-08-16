@@ -64,6 +64,5 @@ executable circuits-inference-axioma
     base >=4.18 && <5,
     circuits,
     circuits-inference,
-    containers >=0.6 && <0.8,
+    containers >=0.6 && <0.9,
     random >=1.2 && <1.4,
-    QuickCheck >=2.14 && <2.16,
