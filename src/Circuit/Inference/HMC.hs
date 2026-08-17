@@ -10,24 +10,29 @@ module Circuit.Inference.HMC
   ( -- * Sampling
     hmcSamples,
     momentTest,
+
     -- * Leapfrog dynamics
     leapfrogStep,
     leapfrog,
     negateMomentum,
     reverseLeapfrog,
+
     -- * Circuit integrations
     leapfrogSystem,
     leapfrogProcess,
+
     -- * Yoshida-4 dynamics
     yoshida4Step,
     yoshida4,
     yoshida4System,
     yoshida4Process,
+
     -- * Exact oracles
     leapfrogReversible,
     leapfrogJacobianDet,
     yoshida4Reversible,
     yoshida4JacobianDet,
+
     -- * Order oracles
     leapfrogOrderSlope,
     yoshida4OrderSlope,
@@ -101,7 +106,7 @@ yoshidaC1 :: Double
 yoshidaC1 = 1.0 / (2.0 - 2.0 ** (1.0 / 3.0))
 
 yoshidaC2 :: Double
-yoshidaC2 = -(2.0 ** (1.0 / 3.0)) / (2.0 - 2.0 ** (1.0 / 3.0))
+yoshidaC2 = -((2.0 ** (1.0 / 3.0)) / (2.0 - 2.0 ** (1.0 / 3.0)))
 
 yoshidaC3 :: Double
 yoshidaC3 = yoshidaC1

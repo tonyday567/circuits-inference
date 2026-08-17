@@ -178,7 +178,7 @@ smcSystem o = system $ Prob $ \k (x, (s, d)) ->
           (+)
           0
           [ transProb s s' * k (x, (s', ((s', ()), obsProb o s')))
-            | s' <- allStates
+          | s' <- allStates
           ]
     Right v -> absurd v
 

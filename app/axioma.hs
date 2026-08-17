@@ -35,11 +35,11 @@ import Circuit.Inference.HMC
     yoshida4Step,
     yoshida4System,
   )
-import Circuit.Process (scan)
 import Circuit.Inference.LinearSolve (exactStationary, powerIteration)
 import Circuit.Inference.Prob (Prob (..), parFGK, parGFK)
 import Circuit.Inference.SMC (State (..), exactFiltering, l1Distance, obsProb, particleFilter, smcSystem, smcTotalWeight, trace5, transProb)
 import Circuit.Inference.Sampler (geometric, sample)
+import Circuit.Process (scan)
 import Control.Arrow (Kleisli (..))
 import Data.IORef (IORef, modifyIORef', newIORef, readIORef, writeIORef)
 import Data.List (sort)

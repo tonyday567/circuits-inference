@@ -1,4 +1,3 @@
-{-# LANGUAGE InstanceSigs #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 
 -- | Effectful probability row: @Prob (Kleisli m) r@.
