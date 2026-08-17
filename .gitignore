@@ -10,3 +10,4 @@ cabal.project.local~
 .stack-work/
 
 .DS_Store
+/cabal.project.local*

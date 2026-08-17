@@ -48,8 +48,9 @@ library
     Circuit.Inference.HMC
     Circuit.Inference.LinearSolve
     Circuit.Inference.Prob
-    Circuit.Inference.SMC
     Circuit.Inference.Sampler
+    Circuit.Inference.SMC
+
   build-depends:
     base >=4.18 && <5,
     circuits >=0.2 && <0.5,
