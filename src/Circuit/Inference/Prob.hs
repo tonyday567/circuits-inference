@@ -92,11 +92,9 @@ instance (Monad m) => Channel (,) (Prob (Kleisli m) r) where
   assoc = embedK assoc
   assoc' = embedK assoc'
   slide = embedK slide
-  withTensorOb _ _ x = x
 
 instance (Monad m) => Strength (,) (Prob (Kleisli m) r) where
   strength (Prob f) = Prob $ \k -> f (k . assoc) . assoc'
-  withStrengthOb _ _ _ x = x
 
 -- ---------------------------------------------------------------------------
 -- Cocartesian structural instances
@@ -106,13 +104,11 @@ instance (Monad m) => Channel Either (Prob (Kleisli m) r) where
   assoc = embedK assoc
   assoc' = embedK assoc'
   slide = embedK slide
-  withTensorOb _ _ x = x
 
 instance (Monad m) => Strength Either (Prob (Kleisli m) r) where
   strength (Prob f) = Prob $ \(Kleisli k) -> Kleisli $ \(x, e) -> case e of
     Left a -> k (x, Left a)
     Right b -> runKleisli (f (Kleisli (\(x', c) -> k (x', Right c)))) (x, b)
-  withStrengthOb _ _ _ x = x
 
 -- ---------------------------------------------------------------------------
 -- Parallel nestings (Fubini on the linear/commutative fragment)
