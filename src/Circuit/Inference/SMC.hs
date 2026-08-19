@@ -31,7 +31,7 @@ where
 import Circuit.Poly (Dir, Mono, Poly (..), System, monoIn, runSystem, system)
 import Circuit.Prob (Prob (..))
 import Data.List (foldl')
-import Data.Maybe (fromMaybe)
+import Data.Maybe (fromMaybe, listToMaybe)
 import Data.Void (Void, absurd)
 import System.Random (StdGen, mkStdGen, randomR)
 
@@ -94,7 +94,7 @@ exactFiltering :: [Int] -> [(State, Double)]
 exactFiltering obs =
   let t = length obs
       seqs = allSeqs t
-      joints = map (\seq -> (last seq, jointProb seq obs)) seqs
+      joints = map (\stateSeq -> (last stateSeq, jointProb stateSeq obs)) seqs
       -- Sum probability for each final state
       totalByState s = sum [p | (lastS, p) <- joints, lastS == s]
       total = sum (map snd joints)
@@ -140,7 +140,10 @@ resample weighted n gen =
       stepVal = 1.0 / fromIntegral n
       (u0, gen') = randomR (0, stepVal) gen
       threshold i = u0 + fromIntegral i * stepVal
-      pick u = fst $ head $ dropWhile (\(_, c) -> c < u) (zip (map fst weighted) cumWeights)
+      pick u =
+        fromMaybe (error "pick: no particle above threshold") $
+          listToMaybe $
+            map fst (dropWhile (\(_, c) -> c < u) (zip (map fst weighted) cumWeights))
       picked = map (pick . threshold) [0 .. n - 1]
    in (picked, gen')
 

@@ -179,7 +179,7 @@ checkLeapfrogProcess = do
       stepped = runSystem (leapfrogSystem eps) (seed, Right seed)
       expected = leapfrogStep seed eps
       ok = procResult == [expected] && fst stepped == expected
-  report ("leapfrog process/system agreement") ok
+  report "leapfrog process/system agreement" ok
   pure ok
 
 -- | Exact oracle: leapfrog integration is reversible up to machine epsilon.
@@ -212,7 +212,7 @@ checkYoshida4Process = do
       stepped = runSystem (yoshida4System eps) (seed, Right seed)
       expected = yoshida4Step seed eps
       ok = procResult == [expected] && fst stepped == expected
-  report ("Yoshida-4 process/system agreement") ok
+  report "Yoshida-4 process/system agreement" ok
   pure ok
 
 -- | Exact oracle: Yoshida-4 integration is reversible up to machine epsilon.
