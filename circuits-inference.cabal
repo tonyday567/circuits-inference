@@ -16,6 +16,8 @@ description:
 
 build-type: Simple
 tested-with:
+  ghc ==9.10.1
+  ghc ==9.12.2
   ghc ==9.14.1
 
 extra-doc-files:
@@ -37,12 +39,9 @@ common ghc-options-stanza
     -Wpartial-fields
     -Wredundant-constraints
 
-common ghc2024-stanza
-  default-language: GHC2024
-
 library
   import: ghc-options-stanza
-  import: ghc2024-stanza
+  default-language: GHC2024
   hs-source-dirs: src
   exposed-modules:
     Circuit.Inference.HMC
@@ -58,7 +57,7 @@ library
 
 executable circuits-inference-axioma
   import: ghc-options-stanza
-  import: ghc2024-stanza
+  default-language: GHC2024
   hs-source-dirs: app
   main-is: axioma.hs
   build-depends:
