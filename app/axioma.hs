@@ -19,6 +19,7 @@
 module Main where
 
 import Circuit (runSystem)
+import Circuit.Category (K (..))
 import Circuit.Inference.HMC
   ( hmcSamples,
     leapfrogJacobianDet,
@@ -39,7 +40,6 @@ import Circuit.Inference.LinearSolve (exactStationary, powerIteration)
 import Circuit.Inference.Prob (Prob (..), parFGK, parGFK)
 import Circuit.Inference.SMC (State (..), exactFiltering, l1Distance, obsProb, particleFilter, smcSystem, smcTotalWeight, trace5, transProb)
 import Circuit.Inference.Sampler (geometric, sample)
-import Circuit.Category (K (..))
 import Circuit.Process (scan)
 import Data.IORef (IORef, modifyIORef', newIORef, readIORef, writeIORef)
 import Data.List (sort)
