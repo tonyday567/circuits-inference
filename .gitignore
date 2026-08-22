@@ -8,3 +8,4 @@ dist-newstyle/
 .stack-work/
 
 .DS_Store
+cabal.project.local
