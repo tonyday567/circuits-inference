@@ -1,4 +1,4 @@
--- | Effectful samplers as @Prob (Kleisli IO)@ morphisms.
+-- | Effectful samplers as @Prob (K IO)@ morphisms.
 module Circuit.Inference.Sampler
   ( -- * Primitive samplers
     bernoulli,
@@ -11,18 +11,18 @@ module Circuit.Inference.Sampler
   )
 where
 
+import Circuit.Category (K (..))
 import Circuit.Inference.Prob (Prob (..), fromWeightedK, traceEK)
-import Control.Arrow (Kleisli (..))
 import System.Random (randomRIO)
 
 -- | Bernoulli trial with success probability @p@.
 --
 -- Output 'True' with probability @p@, 'False' with probability @1-p@.
-bernoulli :: Double -> Prob (Kleisli IO) Double () Bool
+bernoulli :: Double -> Prob (K IO) Double () Bool
 bernoulli p = fromWeightedK [(True, p), (False, 1 - p)]
 
 -- | Discrete uniform distribution over a finite list.
-uniformDiscrete :: [a] -> Prob (Kleisli IO) Double () a
+uniformDiscrete :: [a] -> Prob (K IO) Double () a
 uniformDiscrete xs =
   let n = length xs
       w = 1 / fromIntegral n
@@ -30,15 +30,15 @@ uniformDiscrete xs =
 
 -- | Extract a single sample from a sampler by using the output itself as the
 -- dualizing object.
-sample :: Prob (Kleisli IO) b () b -> IO b
-sample s = runKleisli (runProb s (Kleisli (\(_, b) -> pure b))) ((), ())
+sample :: Prob (K IO) b () b -> IO b
+sample s = runK (runProb s (K (\(_, b) -> pure b))) ((), ())
 
 -- | Geometric distribution counting failures before the first success.
 --
 -- Implemented as a terminating 'traceEK' over an effectful Bernoulli body.
 -- Each recursive iteration performs an 'IO' sample, so the trace is productive
 -- and returns a value with probability 1 (for @0 < p <= 1@).
-geometric :: Double -> Prob (Kleisli IO) Int () Int
+geometric :: Double -> Prob (K IO) Int () Int
 geometric p = traceEK (geometricBody p)
 
 -- | Body of the geometric sampler.
@@ -48,8 +48,8 @@ geometric p = traceEK (geometricBody p)
 -- @k@; @Left k@ continues with count @k@.
 geometricBody ::
   Double ->
-  Prob (Kleisli IO) Int (Either () Int) (Either Int Int)
-geometricBody p = Prob $ \(Kleisli k) -> Kleisli $ \(x, e) -> do
+  Prob (K IO) Int (Either () Int) (Either Int Int)
+geometricBody p = Prob $ \(K k) -> K $ \(x, e) -> do
   u <- randomRIO (0, 1) :: IO Double
   let out = case e of
         -- Left value escapes as the final output; Right value feeds back.

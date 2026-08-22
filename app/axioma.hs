@@ -39,8 +39,8 @@ import Circuit.Inference.LinearSolve (exactStationary, powerIteration)
 import Circuit.Inference.Prob (Prob (..), parFGK, parGFK)
 import Circuit.Inference.SMC (State (..), exactFiltering, l1Distance, obsProb, particleFilter, smcSystem, smcTotalWeight, trace5, transProb)
 import Circuit.Inference.Sampler (geometric, sample)
+import Circuit.Category (K (..))
 import Circuit.Process (scan)
-import Control.Arrow (Kleisli (..))
 import Data.IORef (IORef, modifyIORef', newIORef, readIORef, writeIORef)
 import Data.List (sort)
 import Data.Map.Strict qualified as Map
@@ -82,8 +82,8 @@ checkGeometric = do
 -- The result type is @(Bool, Bool)@ so that the sampler can be nested under
 -- 'parFGK' / 'parGFK'.  The sampler appends @(label, counter)@ to the shared
 -- log, then increments the counter.
-orderedBernoulli :: String -> IORef [(String, Int)] -> Prob (Kleisli IO) (Bool, Bool) () Bool
-orderedBernoulli name logRef = Prob $ \(Kleisli k) -> Kleisli $ \(x, ()) -> do
+orderedBernoulli :: String -> IORef [(String, Int)] -> Prob (K IO) (Bool, Bool) () Bool
+orderedBernoulli name logRef = Prob $ \(K k) -> K $ \(x, ()) -> do
   b <- randomRIO (0, 1) :: IO Double
   let v = b < 0.5
   n <- length <$> readIORef logRef
@@ -107,12 +107,12 @@ checkPremonoidal = do
   let samplerA = orderedBernoulli "A" logRef
       samplerB = orderedBernoulli "B" logRef
       -- Final continuation returns the paired output.
-      finalK = Kleisli (\(_, (a, b)) -> pure (a, b))
+      finalK = K (\(_, (a, b)) -> pure (a, b))
       -- Both samplers have input (); parFGK/parGFK produce input ((), ()).
       runPair nesting = do
         writeIORef logRef []
         let p = nesting samplerA samplerB
-        result <- runKleisli (runProb p finalK) ((), ((), ()))
+        result <- runK (runProb p finalK) ((), ((), ()))
         entries <- readIORef logRef
         pure (result, entries)
 
