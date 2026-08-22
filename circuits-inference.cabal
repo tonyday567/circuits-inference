@@ -53,6 +53,7 @@ library
   build-depends:
     base >=4.20 && <5,
     circuits >=0.3 && <0.4,
+    circuits-prob >=0.1 && <0.2,
     random >=1.2 && <1.4,
 
 executable circuits-inference-axioma
