@@ -28,8 +28,9 @@ module Circuit.Inference.SMC
   )
 where
 
-import Circuit.Poly (Dir, Mono, Poly (..), System, monoIn, runSystem, system)
+import Circuit.Poly (Dir, Mono, Poly (..))
 import Circuit.Prob (Prob (..))
+import Circuit.System (System, monoIn, runSystem, system)
 import Data.List (foldl')
 import Data.Maybe (fromMaybe, listToMaybe)
 import Data.Void (Void, absurd)
