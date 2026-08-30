@@ -32,7 +32,7 @@ module Circuit.Inference.Prob
 where
 
 import Circuit.Category (Category (..), K (..))
-import Circuit.Channel (Channel (..), Strength (..))
+import Circuit.Traced (Assoc (..), Slide (..), Strength (..), Yank (..))
 import Circuit.Prob (Prob (..))
 import Prelude hiding (id, (.))
 
@@ -87,9 +87,11 @@ orPK = choiceByK (||)
 -- Cartesian structural instances
 -- ---------------------------------------------------------------------------
 
-instance (Monad m) => Channel (,) (Prob (K m) r) where
+instance (Monad m) => Assoc (,) (Prob (K m) r) where
   assoc = embedK assoc
   assoc' = embedK assoc'
+
+instance (Monad m) => Slide (,) (Prob (K m) r) where
   slide = embedK slide
 
 instance (Monad m) => Strength (,) (Prob (K m) r) where
@@ -99,9 +101,11 @@ instance (Monad m) => Strength (,) (Prob (K m) r) where
 -- Cocartesian structural instances
 -- ---------------------------------------------------------------------------
 
-instance (Monad m) => Channel Either (Prob (K m) r) where
+instance (Monad m) => Assoc Either (Prob (K m) r) where
   assoc = embedK assoc
   assoc' = embedK assoc'
+
+instance (Monad m) => Slide Either (Prob (K m) r) where
   slide = embedK slide
 
 instance (Monad m) => Strength Either (Prob (K m) r) where

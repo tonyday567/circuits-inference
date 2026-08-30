@@ -18,7 +18,7 @@
 -- 9. Yoshida-4 energy error on the harmonic oscillator scales like @eps^4@.
 module Main where
 
-import Circuit (runSystem)
+import Circuit.Moore (mooreMorphism)
 import Circuit.Category (K (..))
 import Circuit.Inference.HMC
   ( hmcSamples,
@@ -176,7 +176,7 @@ checkLeapfrogProcess = do
       -- One input through the Process: output is the stepped state.
       procResult = scan proc [seed]
       -- One step through the underlying system.
-      stepped = runSystem (leapfrogSystem eps) (seed, Right seed)
+      stepped = mooreMorphism (leapfrogSystem eps) (seed, Right seed)
       expected = leapfrogStep seed eps
       ok = procResult == [expected] && fst stepped == expected
   report "leapfrog process/system agreement" ok
@@ -209,7 +209,7 @@ checkYoshida4Process = do
       seed = (0.0, 1.0)
       proc = yoshida4Process eps
       procResult = scan proc [seed]
-      stepped = runSystem (yoshida4System eps) (seed, Right seed)
+      stepped = mooreMorphism (yoshida4System eps) (seed, Right seed)
       expected = yoshida4Step seed eps
       ok = procResult == [expected] && fst stepped == expected
   report "Yoshida-4 process/system agreement" ok

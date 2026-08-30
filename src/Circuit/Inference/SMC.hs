@@ -30,7 +30,7 @@ where
 
 import Circuit.Poly (Dir, Mono, Poly (..))
 import Circuit.Prob (Prob (..))
-import Circuit.System (System, monoIn, runSystem, system)
+import Circuit.Moore (Moore, monoIn, moore, mooreMorphism)
 import Data.List (foldl')
 import Data.Maybe (fromMaybe, listToMaybe)
 import Data.Void (Void, absurd)
@@ -172,8 +172,8 @@ smcIn () = Left (Right ())
 -- according to @transProb@ and emit the particle @s'@ together with weight
 -- @obsProb o s'@.  The weight is part of the output position, not an input
 -- direction, which is exactly the instance-table claim.
-smcSystem :: Int -> System (Prob (->) Double) State SMCPoly
-smcSystem o = system $ Prob $ \k (x, (s, d)) ->
+smcSystem :: Int -> Moore (,) (Prob (->) Double) State SMCPoly
+smcSystem o = moore $ Prob $ \k (x, (s, d)) ->
   case d of
     Left dMono -> case dMono of
       Left v -> absurd v
@@ -191,7 +191,7 @@ smcSystem o = system $ Prob $ \k (x, (s, d)) ->
 smcTotalWeight :: Int -> State -> Double
 smcTotalWeight o s =
   runProb
-    (runSystem (smcSystem o))
+    (mooreMorphism (smcSystem o))
     (\(_, (_s', ((_p, ()), w))) -> w)
     ((), (s, smcIn ()))
 
