@@ -172,7 +172,7 @@ smcIn () = Left (Right ())
 -- according to @transProb@ and emit the particle @s'@ together with weight
 -- @obsProb o s'@.  The weight is part of the output position, not an input
 -- direction, which is exactly the instance-table claim.
-smcSystem :: Int -> Moore (,) (Prob (->) Double) State SMCPoly
+smcSystem :: Int -> Moore (,) State (Prob (->) Double) SMCPoly
 smcSystem o = moore $ Prob $ \k (x, (s, d)) ->
   case d of
     Left dMono -> case dMono of

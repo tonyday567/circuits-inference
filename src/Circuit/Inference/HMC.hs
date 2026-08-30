@@ -79,13 +79,13 @@ reverseLeapfrog eps n = negateMomentum . leapfrog eps n . negateMomentum
 --
 -- The state is the current @(position, momentum)@ pair.  The monomial direction
 -- is ignored because the Gaussian-target dynamics are autonomous; the output
--- position is the next phase-space point.
-leapfrogSystem :: Double -> Moore (,) (->) (Double, Double) (Mono (Double, Double) (Double, Double))
+-- position is the current phase-space point (the state before the step).
+leapfrogSystem :: Double -> Moore (,) (Double, Double) (->) (Mono (Double, Double) (Double, Double))
 leapfrogSystem eps = moore $ \case
   (_, Left v) -> absurd v
   (s, Right _) ->
     let s' = leapfrogStep s eps
-     in (s', (s', ()))
+     in (s', (s, ()))
 
 -- | The leapfrog integrator as a first-input-seeded 'Process'.
 --
@@ -128,12 +128,15 @@ reverseYoshida4 :: Double -> Int -> (Double, Double) -> (Double, Double)
 reverseYoshida4 eps n = negateMomentum . yoshida4 eps n . negateMomentum
 
 -- | The Yoshida-4 integrator as a cartesian 'System'.
-yoshida4System :: Double -> Moore (,) (->) (Double, Double) (Mono (Double, Double) (Double, Double))
+--
+-- The output position is the current phase-space point (the state before the
+-- macro-step); the state transition performs one Yoshida-4 macro-step.
+yoshida4System :: Double -> Moore (,) (Double, Double) (->) (Mono (Double, Double) (Double, Double))
 yoshida4System eps = moore $ \case
   (_, Left v) -> absurd v
   (s, Right _) ->
     let s' = yoshida4Step s eps
-     in (s', (s', ()))
+     in (s', (s, ()))
 
 -- | The Yoshida-4 integrator as a first-input-seeded 'Process'.
 yoshida4Process :: Double -> Process (Double, Double) (Double, Double)
