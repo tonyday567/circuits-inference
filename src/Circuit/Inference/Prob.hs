@@ -32,8 +32,8 @@ module Circuit.Inference.Prob
 where
 
 import Circuit.Category (Category (..), K (..))
-import Circuit.Traced (Assoc (..), Slide (..), Strength (..), Yank (..))
 import Circuit.Prob (Prob (..))
+import Circuit.Traced (Assoc (..), Slide (..), Strength (..), Yank (..))
 import Prelude hiding (id, (.))
 
 -- | Lift a pure function into an effectful probability morphism.

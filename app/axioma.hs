@@ -18,7 +18,6 @@
 -- 9. Yoshida-4 energy error on the harmonic oscillator scales like @eps^4@.
 module Main where
 
-import Circuit.Moore (mooreMorphism)
 import Circuit.Category (K (..))
 import Circuit.Inference.HMC
   ( hmcSamples,
@@ -40,6 +39,7 @@ import Circuit.Inference.LinearSolve (exactStationary, powerIteration)
 import Circuit.Inference.Prob (Prob (..), parFGK, parGFK)
 import Circuit.Inference.SMC (State (..), exactFiltering, l1Distance, obsProb, particleFilter, smcSystem, smcTotalWeight, trace5, transProb)
 import Circuit.Inference.Sampler (geometric, sample)
+import Circuit.Moore (mooreMorphism)
 import Circuit.Process (scan)
 import Data.IORef (IORef, modifyIORef', newIORef, readIORef, writeIORef)
 import Data.List (sort)

@@ -28,9 +28,9 @@ module Circuit.Inference.SMC
   )
 where
 
+import Circuit.Moore (Moore, monoIn, moore, mooreMorphism)
 import Circuit.Poly (Dir, Mono, Poly (..))
 import Circuit.Prob (Prob (..))
-import Circuit.Moore (Moore, monoIn, moore, mooreMorphism)
 import Data.List (foldl')
 import Data.Maybe (fromMaybe, listToMaybe)
 import Data.Void (Void, absurd)
