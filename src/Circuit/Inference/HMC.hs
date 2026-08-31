@@ -40,7 +40,7 @@ module Circuit.Inference.HMC
 where
 
 import Circuit (Mono, Moore, Process, moore)
-import Circuit.Process (mooreAsProcess)
+import Circuit.Moore (mooreAsProcess)
 import Data.Void (absurd)
 import System.Random (randomRIO)
 
