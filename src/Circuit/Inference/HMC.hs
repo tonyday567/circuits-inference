@@ -40,7 +40,7 @@ module Circuit.Inference.HMC
 where
 
 import Circuit (Mono, Moore, Process, moore)
-import Circuit.Moore (mooreAsProcess)
+import Circuit.Process (asPProcess, asProcess)
 import Data.Void (absurd)
 import System.Random (randomRIO)
 
@@ -92,7 +92,7 @@ leapfrogSystem eps = moore $ \case
 -- The seed is @(0, 1)@; the observation returns the current state as the
 -- position, and the step uses 'leapfrogSystem'.
 leapfrogProcess :: Double -> Process (Double, Double) (Double, Double)
-leapfrogProcess eps = mooreAsProcess (leapfrogSystem eps) (0.0, 1.0)
+leapfrogProcess eps = asProcess (asPProcess (leapfrogSystem eps) (0.0, 1.0))
 
 -- ---------------------------------------------------------------------------
 -- Yoshida-4 composition
@@ -140,7 +140,7 @@ yoshida4System eps = moore $ \case
 
 -- | The Yoshida-4 integrator as a first-input-seeded 'Process'.
 yoshida4Process :: Double -> Process (Double, Double) (Double, Double)
-yoshida4Process eps = mooreAsProcess (yoshida4System eps) (0.0, 1.0)
+yoshida4Process eps = asProcess (asPProcess (yoshida4System eps) (0.0, 1.0))
 
 -- | Exact oracle: Yoshida-4 integration is reversible up to machine epsilon.
 yoshida4Reversible :: Double -> Int -> (Double, Double) -> Bool
