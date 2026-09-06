@@ -39,8 +39,8 @@ import Circuit.Inference.LinearSolve (exactStationary, powerIteration)
 import Circuit.Inference.Prob (Prob (..), parFGK, parGFK)
 import Circuit.Inference.SMC (State (..), exactFiltering, l1Distance, obsProb, particleFilter, smcSystem, smcTotalWeight, trace5, transProb)
 import Circuit.Inference.Sampler (geometric, sample)
-import Circuit.Moore (mooreMorphism)
-import Circuit.Process (scan)
+import Circuit.Machine (machineMorphism)
+import Circuit.Process (scanProcess)
 import Data.IORef (IORef, modifyIORef', newIORef, readIORef, writeIORef)
 import Data.List (sort)
 import Data.Map.Strict qualified as Map
@@ -174,9 +174,9 @@ checkLeapfrogProcess = do
       seed = (0.0, 1.0)
       proc = leapfrogProcess eps
       -- One input through the Process: output is the stepped state.
-      procResult = scan proc [seed]
+      procResult = scanProcess proc [seed]
       -- One step through the underlying system.
-      stepped = mooreMorphism (leapfrogSystem eps) (seed, Right seed)
+      stepped = machineMorphism (leapfrogSystem eps) (seed, Right seed)
       expected = leapfrogStep seed eps
       ok = procResult == [expected] && fst stepped == expected
   report "leapfrog process/system agreement" ok
@@ -208,8 +208,8 @@ checkYoshida4Process = do
   let eps = 0.1
       seed = (0.0, 1.0)
       proc = yoshida4Process eps
-      procResult = scan proc [seed]
-      stepped = mooreMorphism (yoshida4System eps) (seed, Right seed)
+      procResult = scanProcess proc [seed]
+      stepped = machineMorphism (yoshida4System eps) (seed, Right seed)
       expected = yoshida4Step seed eps
       ok = procResult == [expected] && fst stepped == expected
   report "Yoshida-4 process/system agreement" ok

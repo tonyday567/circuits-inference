@@ -28,7 +28,7 @@ module Circuit.Inference.SMC
   )
 where
 
-import Circuit.Moore (Moore, monoIn, moore, mooreMorphism)
+import Circuit.Machine (Machine, machine, machineMorphism, monoIn)
 import Circuit.Poly (Dir, Mono, Poly (..))
 import Circuit.Prob (Prob (..))
 import Data.List (foldl')
@@ -172,8 +172,8 @@ smcIn () = Left (Right ())
 -- according to @transProb@ and emit the particle @s'@ together with weight
 -- @obsProb o s'@.  The weight is part of the output position, not an input
 -- direction, which is exactly the instance-table claim.
-smcSystem :: Int -> Moore (,) State (Prob (->) Double) SMCPoly
-smcSystem o = moore $ Prob $ \k (x, (s, d)) ->
+smcSystem :: Int -> Machine (,) State (Prob (->) Double) SMCPoly
+smcSystem o = machine $ Prob $ \k (x, (s, d)) ->
   case d of
     Left dMono -> case dMono of
       Left v -> absurd v
@@ -191,7 +191,7 @@ smcSystem o = moore $ Prob $ \k (x, (s, d)) ->
 smcTotalWeight :: Int -> State -> Double
 smcTotalWeight o s =
   runProb
-    (mooreMorphism (smcSystem o))
+    (machineMorphism (smcSystem o))
     (\(_, (_s', ((_p, ()), w))) -> w)
     ((), (s, smcIn ()))
 
