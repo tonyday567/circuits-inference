@@ -3,7 +3,7 @@
 -- HMC with leapfrog integration and Metropolis-Hastings accept/reject.
 -- The oracle verifies empirical moments match N(0,1) within tolerance.
 --
--- This module also exposes the leapfrog integrator as a 'System' and 'Process'
+-- This module also exposes the leapfrog integrator as a 'System' and 'GMoore'
 -- over the circuits polynomial interface, together with exact oracles for
 -- reversibility and volume preservation on the Gaussian target.
 module Circuit.Inference.HMC
@@ -40,7 +40,7 @@ module Circuit.Inference.HMC
 where
 
 import Circuit.Category ((.>))
-import Circuit.GMachine (Cell (..), Machine (..), Process, processFromSeed)
+import Circuit.GMachine (Cell (..), GMoore, Machine (..), processFromSeed)
 import Circuit.Poly (Mono)
 import Circuit.Tensor (Tensor (..), Unital (..))
 import System.Random (randomRIO)
@@ -87,11 +87,11 @@ leapfrogSystem eps = Machine (Cell (tensor id unitl .> absorbLeg) (observeLeg .>
     absorbLeg (s, _) = leapfrogStep s eps
     observeLeg = id
 
--- | The leapfrog integrator as a first-input-seeded 'Process'.
+-- | The leapfrog integrator as a first-input-seeded 'GMoore'.
 --
 -- The seed is @(0, 1)@; the observation returns the current state as the
 -- position, and each step is one 'leapfrogStep'.
-leapfrogProcess :: Double -> Process (,) (Double, Double) (->) (Double, Double) (Double, Double)
+leapfrogProcess :: Double -> GMoore (,) (Double, Double) (->) (Double, Double) (Double, Double)
 leapfrogProcess eps = processFromSeed (0.0, 1.0) (Cell absorbLeg observeLeg)
   where
     absorbLeg (s, _) = leapfrogStep s eps
@@ -140,8 +140,8 @@ yoshida4System eps = Machine (Cell (tensor id unitl .> absorbLeg) (observeLeg .>
     absorbLeg (s, _) = yoshida4Step s eps
     observeLeg = id
 
--- | The Yoshida-4 integrator as a first-input-seeded 'Process'.
-yoshida4Process :: Double -> Process (,) (Double, Double) (->) (Double, Double) (Double, Double)
+-- | The Yoshida-4 integrator as a first-input-seeded 'GMoore'.
+yoshida4Process :: Double -> GMoore (,) (Double, Double) (->) (Double, Double) (Double, Double)
 yoshida4Process eps = processFromSeed (0.0, 1.0) (Cell absorbLeg observeLeg)
   where
     absorbLeg (s, _) = yoshida4Step s eps
