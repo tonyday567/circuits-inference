@@ -39,8 +39,10 @@ module Circuit.Inference.HMC
   )
 where
 
-import Circuit.GMachine (Cell (..), Machine (..), Process, monoMachine, processFromSeed)
+import Circuit.Category ((.>))
+import Circuit.GMachine (Cell (..), Machine (..), Process, processFromSeed)
 import Circuit.Poly (Mono)
+import Circuit.Tensor (Tensor (..), Unital (..))
 import System.Random (randomRIO)
 
 -- | N(0,1) log-density.
@@ -80,7 +82,7 @@ reverseLeapfrog eps n = negateMomentum . leapfrog eps n . negateMomentum
 -- is ignored because the Gaussian-target dynamics are autonomous; the output
 -- position is the current phase-space point (the state before the step).
 leapfrogSystem :: Double -> Machine (,) (Double, Double) (->) (Mono (Double, Double) (Double, Double))
-leapfrogSystem eps = monoMachine (Cell absorbLeg observeLeg)
+leapfrogSystem eps = Machine (Cell (tensor id unitl .> absorbLeg) (observeLeg .> unitr'))
   where
     absorbLeg (s, _) = leapfrogStep s eps
     observeLeg = id
@@ -133,7 +135,7 @@ reverseYoshida4 eps n = negateMomentum . yoshida4 eps n . negateMomentum
 -- The output position is the current phase-space point (the state before the
 -- macro-step); the state transition performs one Yoshida-4 macro-step.
 yoshida4System :: Double -> Machine (,) (Double, Double) (->) (Mono (Double, Double) (Double, Double))
-yoshida4System eps = monoMachine (Cell absorbLeg observeLeg)
+yoshida4System eps = Machine (Cell (tensor id unitl .> absorbLeg) (observeLeg .> unitr'))
   where
     absorbLeg (s, _) = yoshida4Step s eps
     observeLeg = id
