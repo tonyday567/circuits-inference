@@ -28,9 +28,9 @@ module Circuit.Inference.SMC
   )
 where
 
-import Circuit.Machine (Machine, machine, machineMorphism, monoIn)
+import Circuit.GMachine (Cell (..), Machine (..))
 import Circuit.Poly (Dir, Mono, Poly (..))
-import Circuit.Prob (Prob (..))
+import Circuit.Prob (Prob (..), embed)
 import Data.List (foldl')
 import Data.Maybe (fromMaybe, listToMaybe)
 import Data.Void (Void, absurd)
@@ -173,27 +173,32 @@ smcIn () = Left (Right ())
 -- @obsProb o s'@.  The weight is part of the output position, not an input
 -- direction, which is exactly the instance-table claim.
 smcSystem :: Int -> Machine (,) State (Prob (->) Double) SMCPoly
-smcSystem o = machine $ Prob $ \k (x, (s, d)) ->
-  case d of
-    Left dMono -> case dMono of
-      Left v -> absurd v
-      Right () ->
-        foldl'
-          (+)
-          0
-          [ transProb s s' * k (x, (s', ((s', ()), obsProb o s')))
-          | s' <- allStates
-          ]
-    Right v -> absurd v
+smcSystem o = Machine (Cell absorbLeg observeLeg)
+  where
+    absorbLeg = Prob $ \k (x, (s, d)) ->
+      case d of
+        Left dMono -> case dMono of
+          Left v -> absurd v
+          Right () ->
+            foldl'
+              (+)
+              0
+              [ transProb s s' * k (x, s')
+              | s' <- allStates
+              ]
+        Right v -> absurd v
+    observeLeg = embed (\s' -> ((s', ()), obsProb o s'))
 
 -- | Total expected weight emitted by one SMC step starting from @s@ for
 -- observation @o@.  This is the marginal likelihood @P(o | s)@.
 smcTotalWeight :: Int -> State -> Double
 smcTotalWeight o s =
   runProb
-    (machineMorphism (smcSystem o))
-    (\(_, (_s', ((_p, ()), w))) -> w)
+    absorbLeg
+    (\(x, s') -> runProb observeLeg (\(_, (_, w)) -> w) (x, s'))
     ((), (s, smcIn ()))
+  where
+    Machine (Cell absorbLeg observeLeg) = smcSystem o
 
 -- ---------------------------------------------------------------------------
 -- Oracle
