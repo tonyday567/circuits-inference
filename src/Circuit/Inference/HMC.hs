@@ -42,7 +42,7 @@ where
 import Circuit.Category ((.>))
 import Circuit.GMachine (Cell (..), GMoore, Machine (..), processFromSeed)
 import Circuit.Poly (Mono)
-import Circuit.Tensor (Tensor (..), Unital (..))
+import Circuit.Tensor (SemiTensor (..), Tensor, Unital (..))
 import System.Random (randomRIO)
 
 -- | N(0,1) log-density.
