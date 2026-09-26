@@ -149,18 +149,18 @@ resample weighted n gen =
    in (picked, gen')
 
 -- ---------------------------------------------------------------------------
--- Polynomial shape oracle: SMC as Prod (Mono () State) (Const Double)
+-- Polynomial shape oracle: SMC as Prod (Mono () State) (Konst Double)
 -- ---------------------------------------------------------------------------
 
 -- | SMC polynomial: particle stream paired with a weight annotation.
 --
 -- * @Mono () State@ — the particle is an output position; the input direction
 --   is trivial (@()@) because the particle is sampled, not supplied.
--- * @Const Double@ — the weight is an output position with /no/ direction,
+-- * @Konst Double@ — the weight is an output position with /no/ direction,
 --   so it cannot be fed back as an input.
 --
 -- Written directly in 'Poly' constructors because 'Mono' is a type synonym.
-type SMCPoly = 'Prod ('Prod ('Const State) ('Exp ())) ('Const Double)
+type SMCPoly = 'Prod ('Prod ('Konst State) ('Exp ())) ('Konst Double)
 
 -- | Canonical input direction for the SMC polynomial: advance one step.
 smcIn :: () -> Dir SMCPoly
