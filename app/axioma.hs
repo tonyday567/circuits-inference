@@ -19,7 +19,7 @@
 module Main where
 
 import Circuit.Category (K (..))
-import Circuit.GMachine (Cell (..), Machine (..), scanProcess)
+import Circuit.GMachine (Cell (..), Machine (..), scan)
 import Circuit.Inference.HMC
   ( hmcSamples,
     leapfrogJacobianDet,
@@ -174,7 +174,7 @@ checkLeapfrogProcess = do
       proc = leapfrogProcess eps
       Machine (Cell absorbLeg _) = leapfrogSystem eps
       -- One input through the Process: output is the stepped state.
-      procResult = scanProcess proc [seed]
+      procResult = scan proc [seed]
       -- One step through the underlying system.
       stepped = absorbLeg (seed, Right seed)
       expected = leapfrogStep seed eps
@@ -209,7 +209,7 @@ checkYoshida4Process = do
       seed = (0.0, 1.0)
       proc = yoshida4Process eps
       Machine (Cell absorbLeg _) = yoshida4System eps
-      procResult = scanProcess proc [seed]
+      procResult = scan proc [seed]
       stepped = absorbLeg (seed, Right seed)
       expected = yoshida4Step seed eps
       ok = procResult == [expected] && stepped == expected
