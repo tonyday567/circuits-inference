@@ -28,9 +28,10 @@ module Circuit.Inference.SMC
   )
 where
 
-import Circuit.GMachine (Cell (..), Machine (..))
+import Circuit.Machine (Body (..), MooreP)
 import Circuit.Poly (Dir, Mono, Poly (..))
 import Circuit.Prob (Prob (..), embed)
+import Circuit.Tensor (Const (..))
 import Data.List (foldl')
 import Data.Maybe (fromMaybe, listToMaybe)
 import Data.Void (Void, absurd)
@@ -172,10 +173,16 @@ smcIn () = Left (Right ())
 -- according to @transProb@ and emit the particle @s'@ together with weight
 -- @obsProb o s'@.  The weight is part of the output position, not an input
 -- direction, which is exactly the instance-table claim.
-smcSystem :: Int -> Machine (,) State (Prob (->) Double) SMCPoly
-smcSystem o = Machine (Cell absorbLeg observeLeg)
+--
+-- The old 'Machine' carried no seed — the caller supplied the current state
+-- at run time.  The direction carries no state (only the advance command),
+-- so the 'init' leg seeds the channel with 'StateA', the deterministic
+-- particle start the filter uses.
+smcSystem :: Int -> MooreP (,) State (Prob (->) Double) SMCPoly
+smcSystem o = Body initLeg commitLeg emitLeg
   where
-    absorbLeg = Prob $ \k (x, (s, d)) ->
+    initLeg = embed (const StateA)
+    commitLeg = Prob $ \k (x, (s, d)) ->
       case d of
         Left dMono -> case dMono of
           Left v -> absurd v
@@ -187,18 +194,18 @@ smcSystem o = Machine (Cell absorbLeg observeLeg)
               | s' <- allStates
               ]
         Right v -> absurd v
-    observeLeg = embed (\s' -> ((s', ()), obsProb o s'))
+    emitLeg = embed (\s' -> Const ((s', ()), obsProb o s'))
 
 -- | Total expected weight emitted by one SMC step starting from @s@ for
 -- observation @o@.  This is the marginal likelihood @P(o | s)@.
 smcTotalWeight :: Int -> State -> Double
 smcTotalWeight o s =
   runProb
-    absorbLeg
-    (\(x, s') -> runProb observeLeg (\(_, (_, w)) -> w) (x, s'))
+    commitLeg
+    (\(x, s') -> runProb emitLeg (\(_, Const (_, w)) -> w) (x, s'))
     ((), (s, smcIn ()))
   where
-    Machine (Cell absorbLeg observeLeg) = smcSystem o
+    Body _ commitLeg emitLeg = smcSystem o
 
 -- ---------------------------------------------------------------------------
 -- Oracle

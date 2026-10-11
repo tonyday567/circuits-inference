@@ -1,5 +1,7 @@
 packages:
   circuits-inference.cabal
   ../circuits/circuits.cabal
+  ../circuits-prob/circuits-prob.cabal
+  ../circuits-rel/circuits-rel.cabal
 
 write-ghc-environment-files: always

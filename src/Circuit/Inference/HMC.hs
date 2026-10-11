@@ -3,9 +3,9 @@
 -- HMC with leapfrog integration and Metropolis-Hastings accept/reject.
 -- The oracle verifies empirical moments match N(0,1) within tolerance.
 --
--- This module also exposes the leapfrog integrator as a 'System' and 'Moore'
--- over the circuits polynomial interface, together with exact oracles for
--- reversibility and volume preservation on the Gaussian target.
+-- This module also exposes the leapfrog integrator as a 'MooreP' and a
+-- 'MooreT' over the circuits polynomial interface, together with exact
+-- oracles for reversibility and volume preservation on the Gaussian target.
 module Circuit.Inference.HMC
   ( -- * Sampling
     hmcSamples,
@@ -39,10 +39,9 @@ module Circuit.Inference.HMC
   )
 where
 
-import Circuit.Category ((.>))
-import Circuit.GMachine (Cell (..), Machine (..), Moore, moore)
+import Circuit.Machine (Body (..), MooreP, MooreT, moore)
 import Circuit.Poly (Mono)
-import Circuit.Tensor (SemiTensor (..), Tensor, Unital (..))
+import Circuit.Tensor (Const (..))
 import System.Random (randomRIO)
 
 -- | N(0,1) log-density.
@@ -76,25 +75,31 @@ negateMomentum (x, p) = (x, -p)
 reverseLeapfrog :: Double -> Int -> (Double, Double) -> (Double, Double)
 reverseLeapfrog eps n = negateMomentum . leapfrog eps n . negateMomentum
 
--- | The leapfrog integrator as a cartesian 'System' with phase-space state.
+-- | The leapfrog integrator as a cartesian 'MooreP' with phase-space state.
 --
 -- The state is the current @(position, momentum)@ pair.  The monomial direction
 -- is ignored because the Gaussian-target dynamics are autonomous; the output
 -- position is the current phase-space point (the state before the step).
-leapfrogSystem :: Double -> Machine (,) (Double, Double) (->) (Mono (Double, Double) (Double, Double))
-leapfrogSystem eps = Machine (Cell (tensor id unitl .> absorbLeg) (observeLeg .> unitr'))
+--
+-- The old 'Machine' carried no seed — the channel was supplied externally.
+-- The 'init' leg seeds it with @(0, 1)@, the phase point the process spelling
+-- and the oracle feed the machine at run time.
+leapfrogSystem :: Double -> MooreP (,) (Double, Double) (->) (Mono (Double, Double) (Double, Double))
+leapfrogSystem eps = Body initLeg commitLeg emitLeg
   where
-    absorbLeg (s, _) = leapfrogStep s eps
-    observeLeg = id
+    initLeg = const (0.0, 1.0)
+    commitLeg (s, _) = leapfrogStep s eps
+    emitLeg = Const . observeLeg
+    observeLeg s = (s, ())
 
--- | The leapfrog integrator as a first-input-seeded 'Moore'.
+-- | The leapfrog integrator as a first-input-seeded 'MooreT'.
 --
 -- The seed is @(0, 1)@; the observation returns the current state as the
 -- position, and each step is one 'leapfrogStep'.
-leapfrogProcess :: Double -> Moore (Double, Double) (Double, Double)
-leapfrogProcess eps = moore (\a -> absorbLeg ((0.0, 1.0), a)) (curry absorbLeg) observeLeg
+leapfrogProcess :: Double -> MooreT (,) (->) (Double, Double) (Double, Double)
+leapfrogProcess eps = moore (\a -> commitLeg ((0.0, 1.0), a)) (curry commitLeg) observeLeg
   where
-    absorbLeg (s, _) = leapfrogStep s eps
+    commitLeg (s, _) = leapfrogStep s eps
     observeLeg = id
 
 -- ---------------------------------------------------------------------------
@@ -130,21 +135,23 @@ yoshida4 eps n state = iterate (`yoshida4Step` eps) state !! n
 reverseYoshida4 :: Double -> Int -> (Double, Double) -> (Double, Double)
 reverseYoshida4 eps n = negateMomentum . yoshida4 eps n . negateMomentum
 
--- | The Yoshida-4 integrator as a cartesian 'System'.
+-- | The Yoshida-4 integrator as a cartesian 'MooreP'.
 --
 -- The output position is the current phase-space point (the state before the
 -- macro-step); the state transition performs one Yoshida-4 macro-step.
-yoshida4System :: Double -> Machine (,) (Double, Double) (->) (Mono (Double, Double) (Double, Double))
-yoshida4System eps = Machine (Cell (tensor id unitl .> absorbLeg) (observeLeg .> unitr'))
+yoshida4System :: Double -> MooreP (,) (Double, Double) (->) (Mono (Double, Double) (Double, Double))
+yoshida4System eps = Body initLeg commitLeg emitLeg
   where
-    absorbLeg (s, _) = yoshida4Step s eps
-    observeLeg = id
+    initLeg = const (0.0, 1.0)
+    commitLeg (s, _) = yoshida4Step s eps
+    emitLeg = Const . observeLeg
+    observeLeg s = (s, ())
 
--- | The Yoshida-4 integrator as a first-input-seeded 'Moore'.
-yoshida4Process :: Double -> Moore (Double, Double) (Double, Double)
-yoshida4Process eps = moore (\a -> absorbLeg ((0.0, 1.0), a)) (curry absorbLeg) observeLeg
+-- | The Yoshida-4 integrator as a first-input-seeded 'MooreT'.
+yoshida4Process :: Double -> MooreT (,) (->) (Double, Double) (Double, Double)
+yoshida4Process eps = moore (\a -> commitLeg ((0.0, 1.0), a)) (curry commitLeg) observeLeg
   where
-    absorbLeg (s, _) = yoshida4Step s eps
+    commitLeg (s, _) = yoshida4Step s eps
     observeLeg = id
 
 -- | Exact oracle: Yoshida-4 integration is reversible up to machine epsilon.

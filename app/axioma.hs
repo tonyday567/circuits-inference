@@ -19,7 +19,6 @@
 module Main where
 
 import Circuit.Category (K (..))
-import Circuit.GMachine (Cell (..), Machine (..), scan)
 import Circuit.Inference.HMC
   ( hmcSamples,
     leapfrogJacobianDet,
@@ -40,6 +39,7 @@ import Circuit.Inference.LinearSolve (exactStationary, powerIteration)
 import Circuit.Inference.Prob (Prob (..), parFGK, parGFK)
 import Circuit.Inference.SMC (State (..), exactFiltering, l1Distance, obsProb, particleFilter, smcSystem, smcTotalWeight, trace5, transProb)
 import Circuit.Inference.Sampler (geometric, sample)
+import Circuit.Machine (Body (..), scan)
 import Data.IORef (IORef, modifyIORef', newIORef, readIORef, writeIORef)
 import Data.List (sort)
 import Data.Map.Strict qualified as Map
@@ -172,11 +172,11 @@ checkLeapfrogProcess = do
   let eps = 0.1
       seed = (0.0, 1.0)
       proc = leapfrogProcess eps
-      Machine (Cell absorbLeg _) = leapfrogSystem eps
+      Body _ commitLeg _ = leapfrogSystem eps
       -- One input through the Process: output is the stepped state.
       procResult = scan proc [seed]
       -- One step through the underlying system.
-      stepped = absorbLeg (seed, Right seed)
+      stepped = commitLeg (seed, Right seed)
       expected = leapfrogStep seed eps
       ok = procResult == [expected] && stepped == expected
   report "leapfrog process/system agreement" ok
@@ -208,9 +208,9 @@ checkYoshida4Process = do
   let eps = 0.1
       seed = (0.0, 1.0)
       proc = yoshida4Process eps
-      Machine (Cell absorbLeg _) = yoshida4System eps
+      Body _ commitLeg _ = yoshida4System eps
       procResult = scan proc [seed]
-      stepped = absorbLeg (seed, Right seed)
+      stepped = commitLeg (seed, Right seed)
       expected = yoshida4Step seed eps
       ok = procResult == [expected] && stepped == expected
   report "Yoshida-4 process/system agreement" ok
