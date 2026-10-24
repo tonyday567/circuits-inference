@@ -33,7 +33,7 @@ where
 
 import Circuit.Category (Category (..), K (..))
 import Circuit.Prob (Prob (..))
-import Circuit.Traced (Assoc (..), Slide (..), Strength (..), Yank (..))
+import Circuit.Traced (Assoc (..), OuterSwap (..), Strength (..), Trace (..))
 import Prelude hiding (id, (.))
 
 -- | Lift a pure function into an effectful probability morphism.
@@ -91,8 +91,8 @@ instance (Monad m) => Assoc (,) (Prob (K m) r) where
   assoc = embedK assoc
   assoc' = embedK assoc'
 
-instance (Monad m) => Slide (,) (Prob (K m) r) where
-  slide = embedK slide
+instance (Monad m) => OuterSwap (,) (Prob (K m) r) where
+  outerSwap = embedK outerSwap
 
 instance (Monad m) => Strength (,) (Prob (K m) r) where
   strength (Prob f) = Prob $ \k -> f (k . assoc) . assoc'
@@ -105,8 +105,8 @@ instance (Monad m) => Assoc Either (Prob (K m) r) where
   assoc = embedK assoc
   assoc' = embedK assoc'
 
-instance (Monad m) => Slide Either (Prob (K m) r) where
-  slide = embedK slide
+instance (Monad m) => OuterSwap Either (Prob (K m) r) where
+  outerSwap = embedK outerSwap
 
 instance (Monad m) => Strength Either (Prob (K m) r) where
   strength (Prob f) = Prob $ \(K k) -> K $ \(x, e) -> case e of
