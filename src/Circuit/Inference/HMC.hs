@@ -39,9 +39,8 @@ module Circuit.Inference.HMC
   )
 where
 
-import Circuit.Machine (Body (..), MooreP, MooreT, moore)
+import Circuit.Machine (Moore (Moore), MooreP, MooreT, moore)
 import Circuit.Poly (Mono)
-import Circuit.Tensor (Const (..))
 import System.Random (randomRIO)
 
 -- | N(0,1) log-density.
@@ -85,11 +84,11 @@ reverseLeapfrog eps n = negateMomentum . leapfrog eps n . negateMomentum
 -- The 'init' leg seeds it with @(0, 1)@, the phase point the process spelling
 -- and the oracle feed the machine at run time.
 leapfrogSystem :: Double -> MooreP (,) (Double, Double) (->) (Mono (Double, Double) (Double, Double))
-leapfrogSystem eps = Body initLeg commitLeg emitLeg
+leapfrogSystem eps = Moore initLeg commitLeg emitLeg
   where
     initLeg = const (0.0, 1.0)
     commitLeg (s, _) = leapfrogStep s eps
-    emitLeg = Const . observeLeg
+    emitLeg = observeLeg
     observeLeg s = (s, ())
 
 -- | The leapfrog integrator as a first-input-seeded 'MooreT'.
@@ -140,11 +139,11 @@ reverseYoshida4 eps n = negateMomentum . yoshida4 eps n . negateMomentum
 -- The output position is the current phase-space point (the state before the
 -- macro-step); the state transition performs one Yoshida-4 macro-step.
 yoshida4System :: Double -> MooreP (,) (Double, Double) (->) (Mono (Double, Double) (Double, Double))
-yoshida4System eps = Body initLeg commitLeg emitLeg
+yoshida4System eps = Moore initLeg commitLeg emitLeg
   where
     initLeg = const (0.0, 1.0)
     commitLeg (s, _) = yoshida4Step s eps
-    emitLeg = Const . observeLeg
+    emitLeg = observeLeg
     observeLeg s = (s, ())
 
 -- | The Yoshida-4 integrator as a first-input-seeded 'MooreT'.

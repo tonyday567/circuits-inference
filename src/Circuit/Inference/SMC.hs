@@ -28,10 +28,9 @@ module Circuit.Inference.SMC
   )
 where
 
-import Circuit.Machine (Body (..), MooreP)
+import Circuit.Machine (Moore (Moore), MooreP)
 import Circuit.Poly (Dir, Mono, Poly (..))
 import Circuit.Prob (Prob (..), embed)
-import Circuit.Tensor (Const (..))
 import Data.List (foldl')
 import Data.Maybe (fromMaybe, listToMaybe)
 import Data.Void (Void, absurd)
@@ -179,7 +178,7 @@ smcIn () = Left (Right ())
 -- so the 'init' leg seeds the channel with 'StateA', the deterministic
 -- particle start the filter uses.
 smcSystem :: Int -> MooreP (,) State (Prob (->) Double) SMCPoly
-smcSystem o = Body initLeg commitLeg emitLeg
+smcSystem o = Moore initLeg commitLeg emitLeg
   where
     initLeg = embed (const StateA)
     commitLeg = Prob $ \k (x, (s, d)) ->
@@ -194,7 +193,7 @@ smcSystem o = Body initLeg commitLeg emitLeg
               | s' <- allStates
               ]
         Right v -> absurd v
-    emitLeg = embed (\s' -> Const ((s', ()), obsProb o s'))
+    emitLeg = embed (\s' -> ((s', ()), obsProb o s'))
 
 -- | Total expected weight emitted by one SMC step starting from @s@ for
 -- observation @o@.  This is the marginal likelihood @P(o | s)@.
@@ -202,10 +201,10 @@ smcTotalWeight :: Int -> State -> Double
 smcTotalWeight o s =
   runProb
     commitLeg
-    (\(x, s') -> runProb emitLeg (\(_, Const (_, w)) -> w) (x, s'))
+    (\(x, s') -> runProb emitLeg (\(_, (_, w)) -> w) (x, s'))
     ((), (s, smcIn ()))
   where
-    Body _ commitLeg emitLeg = smcSystem o
+    Moore _ commitLeg emitLeg = smcSystem o
 
 -- ---------------------------------------------------------------------------
 -- Oracle
